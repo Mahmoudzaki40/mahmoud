@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متتبع النظام الغذائي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>متتبع النظام الغذائي</h1>
+    </header>
+    <nav>
+        <a href="main.html">حساب مؤشرات الجسم</a>
+        <a href="food_calculator.html">حاسبة السعرات في الطعام</a>
+        <a href="macro_calculator.html">حاسبة البروتين والكربوهيدرات والدهون</a>
+        <a href="diet_tracker.html">تتبع نظامك الغذائي</a>
+        <a href="weight.html">تتبع الوزن</a>
+        <a href="diet.html">نظام غذائي </a>
+    </nav>
+    <div class="container">
+        <form>
+            <label for="foodName">اسم الطعام:</label>
+            <input type="text" id="foodName" placeholder="أدخل اسم الطعام" oninput="showSuggestions(this.value)">
+            <div id="suggestions"></div>
+
+            <label for="foodUnit">الكمية:</label>
+            <select id="foodUnit">
+                <option value="gram">جرام</option>
+                <option value="piece">حبة</option>
+                <option value="cup">كوب</option>
+            </select>
+
+            <input type="number" id="foodQuantity" placeholder="أدخل الكمية">
+            
+            <button type="button" onclick="addFood()">إضافة الطعام</button>
+        </form>
+        <div id="dailyIntake">
+            <h2>التناول اليومي</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>اسم الطعام</th>
+                        <th>الكمية</th>
+                        <th>السعرات الحرارية</th>
+                        <th>البروتينات (غ)</th>
+                        <th>الكربوهيدرات (غ)</th>
+                        <th>الدهون (غ)</th>
+                    </tr>
+                </thead>
+                <tbody id="foodList"></tbody>
+                <tfoot>
+                    <tr>
+                        <th>الإجمالي</th>
+                        <td id="totalAmount">0</td>
+                        <td id="totalCalories">0</td>
+                        <td id="totalProteins">0</td>
+                        <td id="totalCarbs">0</td>
+                        <td id="totalFats">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script src="foodData.js"></script>
+    <script>
+        var totalAmount = 0, totalCalories = 0, totalProteins = 0, totalCarbs = 0, totalFats = 0;
+
+        function showSuggestions(inputText) {
+            let suggestionsPanel = document.getElementById('suggestions');
+            suggestionsPanel.innerHTML = '';
+            if (inputText.length > 0) {
+                let matches = foods.filter(food => food.name.toLowerCase().includes(inputText.toLowerCase()));
+                if (matches.length > 0) {
+                    suggestionsPanel.style.display = 'block';
+                    matches.forEach(function(food) {
+                        let div = document.createElement('div');
+                        div.textContent = food.name;
+                        div.className = 'suggestion-item';
+                        div.onclick = function() {
+                            document.getElementById('foodName').value = food.name;
+                            suggestionsPanel.innerHTML = '';
+                            suggestionsPanel.style.display = 'none';
+                        };
+                        suggestionsPanel.appendChild(div);
+                    });
+                } else {
+                    suggestionsPanel.style.display = 'none';
+                }
+            } else {
+                suggestionsPanel.style.display = 'none';
+            }
+        }
+
+        function addFood() {
+            const name = document.getElementById("foodName").value.trim().toLowerCase();
+            const quantity = parseFloat(document.getElementById("foodQuantity").value);
+            const unit = document.getElementById("foodUnit").value;
+
+            const nutrients = calculateFoodNutrients(name, quantity, unit);
+            if (nutrients) {
+                updateTable({
+                    name: name,
+                    amount: quantity,
+                    calories: nutrients.calories,
+                    proteins: nutrients.proteins,
+                    carbs: nutrients.carbs,
+                    fats: nutrients.fats
+                });
+                totalAmount += quantity;
+                totalCalories += nutrients.calories;
+                totalProteins += nutrients.proteins;
+                totalCarbs += nutrients.carbs;
+                totalFats += nutrients.fats;
+                updateTotals();
+            } else {
+                alert("الطعام غير موجود في قاعدة البيانات.");
+            }
+        }
+
+        function updateTable(food) {
+            const tableBody = document.getElementById("foodList");
+            const row = `<tr>
+                <td>${food.name}</td>
+                <td>${food.amount.toFixed(2)} غ</td>
+                <td>${food.calories.toFixed(2)}</td>
+                <td>${food.proteins.toFixed(2)}</td>
+                <td>${food.carbs.toFixed(2)}</td>
+                <td>${food.fats.toFixed(2)}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        }
+
+        function updateTotals() {
+            document.getElementById("totalAmount").textContent = totalAmount.toFixed(2) + ' غ';
+            document.getElementById("totalCalories").textContent = totalCalories.toFixed(2);
+            document.getElementById("totalProteins").textContent = totalProteins.toFixed(2);
+            document.getElementById("totalCarbs").textContent = totalCarbs.toFixed(2);
+            document.getElementById("totalFats").textContent = totalFats.toFixed(2);
+        }
+    </script>
+</body>
+</html>

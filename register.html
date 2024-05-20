@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>تسجيل مستخدم جديد</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>تسجيل مستخدم جديد</h1>
+    <form id="registerForm">
+        <input type="text" id="newUsername" placeholder="اسم المستخدم" required>
+        <input type="password" id="newPassword" placeholder="كلمة المرور" required>
+        <select id="newRole">
+            <option value="user">مستخدم عادي</option>
+            <option value="admin">مسؤول</option>
+        </select>
+        <button type="button" onclick="registerUser()">تسجيل</button>
+    </form>
+
+    <script>
+    let db;
+    window.onload = function() {
+        let request = window.indexedDB.open('UserDatabase', 2);
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.errorCode);
+        };
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains('users')) {
+                let store = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+                store.createIndex('username', 'username', { unique: true });
+                console.log("Object store 'users' created.");
+            }
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            console.log("Database opened successfully.");
+            console.log("Object stores:", db.objectStoreNames);
+        };
+    };
+
+    function registerUser() {
+        if (!db) {
+            console.error('Database is not initialized');
+            return;
+        }
+
+        console.log("Registering user...");
+
+        var username = document.getElementById('newUsername').value;
+        var password = document.getElementById('newPassword').value;
+        var role = document.getElementById('newRole').value;
+        var encryptedPassword = CryptoJS.AES.encrypt(password, 'secret key 123').toString();
+
+        let transaction = db.transaction(['users'], 'readwrite');
+        let store = transaction.objectStore('users');
+        let index = store.index('username');
+        let request = index.get(username);
+
+        request.onsuccess = function() {
+            if (request.result) {
+                alert('اسم المستخدم موجود بالفعل');
+            } else {
+                store.add({ username: username, password: encryptedPassword, role: role });
+                alert('تم تسجيل المستخدم بنجاح!');
+            }
+        };
+
+        request.onerror = function() {
+            console.error('Error adding user', request.error);
+        };
+    }
+    </script>
+</body>
+</html>

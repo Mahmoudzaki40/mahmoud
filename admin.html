@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المستخدمين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"></script>
+</head>
+<body>
+    <header><h1>إدارة المستخدمين</h1></header>
+    <div class="nav-links">
+        <a href="main.html">حساب مؤشرات الجسم</a>
+        <a href="food_calculator.html">حاسبة السعرات في الطعام</a>
+        <a href="macro_calculator.html">حاسبة البروتين والكربوهيدرات والدهون</a>
+        <a href="diet_tracker.html">تتبع نظامك الغذائي</a>
+        <a href="weight.html">تتبع الوزن</a>
+        <a href="diet.html">نظام غذائي</a>
+        <a href="exercises.html">تمارين</a>
+        <a href="admin.html" id="adminLink">إدارة المستخدمين</a>
+    </div>
+    <div class="container" id="adminSection">
+        <table>
+            <thead>
+                <tr>
+                    <th>اسم المستخدم</th>
+                    <th>الدور</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="userTable">
+                <!-- سيتم إضافة المستخدمين هنا بواسطة JavaScript -->
+            </tbody>
+        </table>
+
+        <form id="registerForm">
+            <h2>تسجيل مستخدم جديد</h2>
+            <label for="username">اسم المستخدم:</label>
+            <input type="text" id="username" required>
+            
+            <label for="password">كلمة المرور:</label>
+            <input type="password" id="password" required>
+            
+            <label for="role">الدور:</label>
+            <select id="role" required>
+                <option value="user">مستخدم عادي</option>
+                <option value="admin">مسئول</option>
+            </select>
+            
+            <button type="button" onclick="registerUser()">تسجيل</button>
+        </form>
+    </div>
+
+    <script>
+    let db;
+    window.onload = function() {
+        let request = window.indexedDB.open('UserDatabase', 2);
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.errorCode);
+        };
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains('users')) {
+                let store = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+                store.createIndex('username', 'username', { unique: true });
+                console.log("Object store 'users' created.");
+            }
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            checkAdmin();
+            updateTable();
+            checkUserRole();
+        };
+    };
+
+    function checkUserRole() {
+        let currentUser = sessionStorage.getItem('currentUser');
+        if (currentUser) {
+            currentUser = JSON.parse(currentUser);
+            if (currentUser.role === 'admin') {
+                document.getElementById('adminSection').style.display = 'block';
+            } else {
+                document.getElementById('adminLink').style.display = 'none';
+            }
+        }
+    }
+
+    function checkAdmin() {
+        let transaction = db.transaction(['users'], 'readonly');
+        let store = transaction.objectStore('users');
+        let index = store.index('username');
+        let request = index.get('admin');
+
+        request.onsuccess = function() {
+            if (!request.result) {
+                registerUser('admin', '0560016420', 'admin', true);
+            }
+        };
+    }
+
+    function registerUser(username, password, role, isAdmin = false) {
+        if (!isAdmin) {
+            username = document.getElementById('username').value;
+            password = document.getElementById('password').value;
+            role = document.getElementById('role').value;
+        }
+
+        var encryptedPassword = CryptoJS.AES.encrypt(password, 'secret key 123').toString();
+
+        let transaction = db.transaction(['users'], 'readwrite');
+        let store = transaction.objectStore('users');
+        let index = store.index('username');
+        let request = index.get(username);
+
+        request.onsuccess = function() {
+            if (request.result) {
+                alert('اسم المستخدم موجود بالفعل');
+            } else {
+                store.add({ username: username, password: encryptedPassword, role: role });
+                if (!isAdmin) {
+                    alert('تم تسجيل المستخدم بنجاح!');
+                }
+                updateTable();
+            }
+        };
+
+        request.onerror = function(event) {
+            console.error('Error adding user:', event.target.errorCode);
+        };
+    }
+
+    function updateTable() {
+        let transaction = db.transaction(['users'], 'readonly');
+        let store = transaction.objectStore('users');
+        let request = store.getAll();
+
+        request.onsuccess = function() {
+            let users = request.result;
+            let userTable = document.getElementById('userTable');
+            userTable.innerHTML = '';
+            users.forEach(function(user) {
+                let row = document.createElement('tr');
+                row.innerHTML = `<td>${user.username}</td><td>${user.role}</td><td><button onclick="deleteUser(${user.id})">حذف</button></td>`;
+                userTable.appendChild(row);
+            });
+        };
+
+        request.onerror = function(event) {
+            console.error('Error fetching users:', event.target.errorCode);
+        };
+    }
+
+    function deleteUser(id) {
+        let transaction = db.transaction(['users'], 'readwrite');
+        let store = transaction.objectStore('users');
+        let request = store.delete(id);
+
+        request.onsuccess = function() {
+            alert('تم حذف المستخدم بنجاح');
+            updateTable();
+        };
+
+        request.onerror = function(event) {
+            console.error('Error deleting user:', event.target.errorCode);
+        };
+    }
+    </script>
+</body>
+</html>

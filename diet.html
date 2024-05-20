@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام غذائي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header><h1>نظام غذائي</h1></header>
+    <nav id="nav-links">
+        <!-- الروابط ستتم إضافتها بواسطة JavaScript -->
+    </nav>
+    <div class="container">
+        <div class="section">
+            <h2 onclick="toggleSection('weightLossTable')">تخسيس وزن</h2>
+            <table id="weightLossTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>الوجبة الأولى</th>
+                        <th>الوجبة الثانية</th>
+                        <th>الوجبة الثالثة</th>
+                        <th>سناك</th>
+                        <th>مجموع السعرات</th>
+                        <th>تحرير</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- سيتم إضافة البيانات هنا بواسطة JavaScript -->
+                </tbody>
+            </table>
+            <button onclick="addRow('weightLossTable')">إضافة صف</button>
+            <button onclick="addDay('weightLossTable')">إضافة يوم جديد</button>
+        </div>
+        <div class="section">
+            <h2 onclick="toggleSection('weightGainTable')">زيادة وزن</h2>
+            <table id="weightGainTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>الوجبة الأولى</th>
+                        <th>الوجبة الثانية</th>
+                        <th>الوجبة الثالثة</th>
+                        <th>سناك</th>
+                        <th>مجموع السعرات</th>
+                        <th>تحرير</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- سيتم إضافة البيانات هنا بواسطة JavaScript -->
+                </tbody>
+            </table>
+            <button onclick="addRow('weightGainTable')">إضافة صف</button>
+            <button onclick="addDay('weightGainTable')">إضافة يوم جديد</button>
+        </div>
+        <div class="section">
+            <h2 onclick="toggleSection('muscleCuttingTable')">حديد تنشيف</h2>
+            <table id="muscleCuttingTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>الوجبة الأولى</th>
+                        <th>الوجبة الثانية</th>
+                        <th>الوجبة الثالثة</th>
+                        <th>سناك</th>
+                        <th>مجموع السعرات</th>
+                        <th>تحرير</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- سيتم إضافة البيانات هنا بواسطة JavaScript -->
+                </tbody>
+            </table>
+            <button onclick="addRow('muscleCuttingTable')">إضافة صف</button>
+            <button onclick="addDay('muscleCuttingTable')">إضافة يوم جديد</button>
+        </div>
+        <div class="section">
+            <h2 onclick="toggleSection('muscleBulkingTable')">حديد تضخيم</h2>
+            <table id="muscleBulkingTable" class="hidden">
+                <thead>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>الوجبة الأولى</th>
+                        <th>الوجبة الثانية</th>
+                        <th>الوجبة الثالثة</th>
+                        <th>سناك</th>
+                        <th>مجموع السعرات</th>
+                        <th>تحرير</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- سيتم إضافة البيانات هنا بواسطة JavaScript -->
+                </tbody>
+            </table>
+            <button onclick="addRow('muscleBulkingTable')">إضافة صف</button>
+            <button onclick="addDay('muscleBulkingTable')">إضافة يوم جديد</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 جميع الحقوق محفوظة</p>
+    </footer>
+
+    <script>
+    function toggleSection(tableId) {
+        var table = document.getElementById(tableId);
+        table.style.display = (table.style.display === 'none' || table.style.display === '') ? 'table' : 'none';
+    }
+
+    function populateTable(data, tableId) {
+        var tableBody = document.getElementById(tableId).querySelector('tbody');
+        tableBody.innerHTML = '';
+        data.forEach((row, index) => {
+            var tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td contenteditable="true">${row.day}</td>
+                <td contenteditable="true">${row.meal1}</td>
+                <td contenteditable="true">${row.meal2}</td>
+                <td contenteditable="true">${row.meal3}</td>
+                <td contenteditable="true">${row.snack}</td>
+                <td contenteditable="true">${row.calories}</td>
+                <td><button class="save-btn" onclick="saveRow('${tableId}', ${index})">حفظ</button></td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    function saveRow(tableId, index) {
+        const table = document.getElementById(tableId);
+        const rows = table.querySelectorAll("tbody tr");
+        const cells = rows[index].querySelectorAll("td");
+
+        const updatedRow = {
+            day: cells[0].textContent,
+            meal1: cells[1].textContent,
+            meal2: cells[2].textContent,
+            meal3: cells[3].textContent,
+            snack: cells[4].textContent,
+            calories: cells[5].textContent
+        };
+
+        const planName = tableId.replace('Table', 'Plan');
+        let plan = JSON.parse(localStorage.getItem(planName));
+        plan[index] = updatedRow;
+        localStorage.setItem(planName, JSON.stringify(plan));
+        alert("تم حفظ التعديلات!");
+    }
+
+    function addRow(tableId) {
+        const tableBody = document.getElementById(tableId).querySelector('tbody');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td contenteditable="true"></td>
+            <td><button class="save-btn" onclick="saveNewRow('${tableId}', this)">حفظ</button></td>
+        `;
+        tableBody.appendChild(newRow);
+    }
+
+    function saveNewRow(tableId, button) {
+        const row = button.parentElement.parentElement;
+        const cells = row.querySelectorAll("td");
+
+        const newRow = {
+            day: cells[0].textContent,
+            meal1: cells[1].textContent,
+            meal2: cells[2].textContent,
+            meal3: cells[3].textContent,
+            snack: cells[4].textContent,
+            calories: cells[5].textContent
+        };
+
+        const planName = tableId.replace('Table', 'Plan');
+        let plan = JSON.parse(localStorage.getItem(planName)) || [];
+        plan.push(newRow);
+        localStorage.setItem(planName, JSON.stringify(plan));
+        alert("تم إضافة الصف الجديد!");
+        loadDietPlans(); // لإعادة تحميل البيانات وتحديث الجدول
+    }
+
+    function addDay(tableId) {
+        const tableBody = document.getElementById(tableId).querySelector('tbody');
+        const newRow = {
+            day: "اليوم الجديد",
+            meal1: "",
+            meal2: "",
+            meal3: "",
+            snack: "",
+            calories: ""
+        };
+
+        const planName = tableId.replace('Table', 'Plan');
+        let plan = JSON.parse(localStorage.getItem(planName)) || [];
+        plan.push(newRow);
+        localStorage.setItem(planName, JSON.stringify(plan));
+        populateTable(plan, tableId); // إعادة تعبئة الجدول بالبيانات المحدثة
+        alert("تم إضافة يوم جديد!");
+    }
+
+    function loadDietPlans() {
+        const weightLossPlan = JSON.parse(localStorage.getItem('weightLossPlan')) || [];
+        const weightGainPlan = JSON.parse(localStorage.getItem('weightGainPlan')) || [];
+        const muscleCuttingPlan = JSON.parse(localStorage.getItem('muscleCuttingPlan')) || [];
+        const muscleBulkingPlan = JSON.parse(localStorage.getItem('muscleBulkingPlan')) || [];
+
+        populateTable(weightLossPlan, 'weightLossTable');
+        populateTable(weightGainPlan, 'weightGainTable');
+        populateTable(muscleCuttingPlan, 'muscleCuttingTable');
+        populateTable(muscleBulkingPlan, 'muscleBulkingTable');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var role = localStorage.getItem('role');
+        var navLinks = document.getElementById('nav-links');
+        var links = `
+        <a href="main.html">حساب مؤشرات الجسم</a>
+        <a href="food_calculator.html">حاسبة السعرات في الطعام</a>
+        <a href="macro_calculator.html">حاسبة البروتين والكربوهيدرات والدهون</a>
+        <a href="diet_tracker.html">تتبع نظامك الغذائي</a>
+        <a href="weight.html">تتبع الوزن</a>
+        <a href="diet.html">نظام غذائي</a>
+        `;
+        if (role === 'admin') {
+            links += '<a href="admin.html">الادارة</a>';
+        }
+        navLinks.innerHTML = links;
+
+        // تحميل البيانات من Local Storage وعرضها
+        loadDietPlans();
+    });
+    </script>
+</body>
+</html>

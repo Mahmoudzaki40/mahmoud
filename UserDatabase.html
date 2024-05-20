@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>إنشاء قاعدة بيانات</title>
+    <script>
+    let db;
+    window.onload = function() {
+        let request = window.indexedDB.open('UserDatabase', 1);
+
+        request.onerror = function(event) {
+            console.error("Database error: " + event.target.errorCode);
+        };
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            if (!db.objectStoreNames.contains('users')) {
+                let store = db.createObjectStore('users', { keyPath: 'id', autoIncrement: true });
+                store.createIndex('username', 'username', { unique: true });
+                console.log("Object store 'users' created.");
+            }
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            console.log("Database opened successfully.");
+        };
+    };
+    </script>
+</head>
+<body>
+    <h1>إنشاء قاعدة بيانات</h1>
+    <p>يتم إنشاء قاعدة بيانات IndexedDB عند تحميل هذه الصفحة.</p>
+</body>
+</html>
